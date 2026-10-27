@@ -1,0 +1,882 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{iftex}
+\ifTUTeX % tectonic / xelatex / lualatex
+  \usepackage{fontspec}
+\else % pdflatex
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\setlength{\emergencystretch}{2em}
+\usepackage{enumitem}
+\usepackage{indentfirst}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,backgrounds}
+\tikzset{
+  wifiicon/.pic={\fill (0,0) circle (0.05);
+    \foreach \r in {0.14,0.25,0.36} \draw[line width=1.1pt] (50:\r) arc (50:130:\r);}}
+\colorlet{wifibg}{cyan!25}
+\usepackage[hidelinks]{hyperref}
+
+
+% Dane grupy - uzupełnić
+\newcommand{\autorA}{Adam Korwin 284455}
+\newcommand{\autorB}{Michał Hałas 277462}
+
+\begin{document}
+
+% ---------------- Strona tytułowa ----------------
+\pagenumbering{Alph}
+\begin{titlepage}
+  \centering
+  \includegraphics[height=3.5cm]{pwr_logo.png}\par\vspace{0.6cm}
+  {\Large\textsc{Politechnika Wrocławska}\par}
+  \vspace{0.2cm}
+  {\large Wydział Informatyki i Telekomunikacji\par}
+  \vspace{2.5cm}
+  {\large Projekt z przedmiotu\par}
+  \vspace{0.3cm}
+  {\LARGE\bfseries Technologie Sieciowe\par}
+  \vspace{1.2cm}
+  {\Large Projekt lokalnej sieci komputerowej\\ dla wydawnictwa\par}
+  \vspace{0.6cm}
+  \vspace{2.5cm}
+  \begin{flushleft}
+    \textbf{Skład grupy:}
+    \begin{enumerate}[leftmargin=2em]
+      \item \autorA
+      \item \autorB
+    \end{enumerate}
+  \end{flushleft}
+  \vfill
+  {\large Wrocław, \today\par}
+\end{titlepage}
+\pagenumbering{arabic}
+
+\tableofcontents
+\newpage
+
+% ---------------- 1. Wstęp ----------------
+\section{Wstęp}
+
+\subsection{Charakterystyka przedsiębiorstwa}
+
+Przedmiotem projektu jest sieć komputerowa wydawnictwa z siedzibą we Wrocławiu.
+Wydawnictwo prowadzi pełny cykl wydawniczy: od przyjęcia materiałów od autorów
+i klientów, przez opracowanie redakcyjne i korektę tekstów, aż po przygotowanie
+do druku i druk. Firma zatrudnia 310 pracowników pracujących przy stanowiskach
+komputerowych, zorganizowanych w trzy grupy robocze (działy):
+
+\begin{itemize}
+  \item \textbf{Drukarnia} (103 stanowiska) -- dział odpowiedzialny za
+  przygotowanie publikacji do druku (skład, przygotowanie plików produkcyjnych)
+  oraz realizację zleceń drukarskich;
+  \item \textbf{Korektorzy} (85 stanowisk) -- dział zajmujący się redakcją
+  i korektą tekstów przed ich skierowaniem do druku;
+  \item \textbf{Konsultanci} (122 stanowiska) -- dział obsługi autorów
+  i klientów: przyjmowanie zamówień, konsultacje oraz kontakt z kontrahentami.
+\end{itemize}
+
+Przedsiębiorstwo zajmuje dwa budynki: w Budynku~1 piętra 1--2, a w
+Budynku~2 piętra 1--3. Pracownicy wszystkich działów są rozmieszczeni
+w obu budynkach. Budynki są oddalone od siebie o 204~m i połączone
+światłowodem wielomodowym.
+W budynkach zainstalowano okablowanie strukturalne kategorii~6 oraz szafy
+teleinformatyczne: główny punkt dystrybucyjny (MDF) na 3.~piętrze Budynku~2
+oraz dwa pośrednie punkty dystrybucyjne (IDF1 na 2.~piętrze Budynku~2,
+IDF2 na 2.~piętrze Budynku~1). Na 1.~piętrze każdego z budynków pracownicy
+korzystają również z urządzeń bezprzewodowych. Rozmieszczenie stanowisk,
+urządzeń i punktów dystrybucyjnych przedstawiono na rysunku~\ref{fig:rozmieszczenie}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  floor/.style={draw, anchor=south west, minimum width=6.9cm, minimum height=2cm,
+    text width=6.6cm, align=left, inner sep=4pt},
+  wifi/.style={fill=wifibg},
+  rack/.style={draw, fill=black!75, text=white, font=\scriptsize\bfseries,
+    minimum width=1.1cm, minimum height=0.5cm, inner sep=1pt},
+  fiber/.style={very thick, orange!80!black},
+  copper/.style={very thick, green!50!black},
+  serves/.style={densely dotted, thick, ->, >=stealth}]
+
+  % Budynek 1 (2 piętra), punkt dystrybucyjny w prawym górnym rogu
+  \node[floor, wifi] (b1p1) at (0,0)
+    {\textbf{Piętro 1} -- 99 stanowisk\\
+     Drukarnia: 17, Korektorzy: 43, Konsultanci: 39\\
+     Drukarki: 1, AP Wi-Fi: 2, urz. bezprz.: 15};
+  \node[floor] (b1p2) at (0,2)
+    {\textbf{Piętro 2} -- 64 stanowiska\\
+     Drukarnia: 22, Korektorzy: 17, Konsultanci: 25\\
+     Drukarki: 3};
+  \begin{scope}[on background layer]
+    \node[draw, very thick, rounded corners, fill=black!4, inner sep=5pt, fit=(b1p1)(b1p2)] (bud1) {};
+  \end{scope}
+  \node[font=\small\bfseries, below=2pt of bud1] {Budynek 1};
+
+  % Budynek 2 (3 piętra), punkty dystrybucyjne w prawym górnym rogu
+  \node[floor, wifi] (b2p1) at (8.6,0)
+    {\textbf{Piętro 1} -- 8 stanowisk\\
+     Drukarnia: 5, Korektorzy: 2, Konsultanci: 1\\
+     Drukarki: 2, AP Wi-Fi: 1, urz. bezprz.: 12};
+  \node[floor] (b2p2) at (8.6,2)
+    {\textbf{Piętro 2} -- 77 stanowisk\\
+     Drukarnia: 24, Korektorzy: 18, Konsultanci: 35\\
+     Drukarki: 2};
+  \node[floor] (b2p3) at (8.6,4)
+    {\textbf{Piętro 3} -- 62 stanowiska\\
+     Drukarnia: 35, Korektorzy: 5, Konsultanci: 22\\
+     Drukarki: 2};
+  \begin{scope}[on background layer]
+    \node[draw, very thick, rounded corners, fill=black!4, inner sep=5pt, fit=(b2p1)(b2p3)] (bud2) {};
+  \end{scope}
+  \node[font=\small\bfseries, below=2pt of bud2] {Budynek 2};
+
+  % Odległość między budynkami
+  \draw[<->, >=stealth, thick] (bud1.east |- 0,1) -- (bud2.west |- 0,1)
+    node[midway, above, font=\scriptsize\bfseries] {204 m};
+
+  % Wi-Fi
+  \pic[cyan!40!black] at ([shift={(-0.45,0.3)}]b1p1.south east) {wifiicon};
+  \pic[cyan!40!black] at ([shift={(-0.45,0.3)}]b2p1.south east) {wifiicon};
+
+  \node[rack, anchor=north east] (idf2) at ([shift={(-0.12,-0.12)}]b1p2.north east) {IDF2};
+  \node[rack, anchor=north east] (idf1) at ([shift={(-0.12,-0.12)}]b2p2.north east) {IDF1};
+  \node[rack, anchor=north east] (mdf)  at ([shift={(-0.12,-0.12)}]b2p3.north east) {MDF};
+
+  \draw[fiber] (idf2.east) -- ++(0.9,0) |- ([yshift=0.35cm]b2p3.north -| mdf) -- (mdf.north);
+  \draw[copper] (idf1.north) -- (mdf.south);
+  \draw[serves] ([xshift=0.35cm]idf2.south) -- ([xshift=-0.32cm]b1p1.north east);
+  \draw[serves] ([xshift=0.35cm]idf1.south) -- ([xshift=-0.32cm]b2p1.north east);
+\end{tikzpicture}
+
+\vspace{6pt}
+{\scriptsize
+\tikz\draw[very thick, orange!80!black] (0,0) -- (0.6,0); światłowód wielomodowy\quad
+\tikz\draw[very thick, green!50!black] (0,0) -- (0.6,0); skrętka kat.~6\quad
+\tikz\draw[densely dotted, thick, ->, >=stealth] (0,0) -- (0.6,0); piętro obsługiwane przez IDF\quad
+\tikz\draw[fill=wifibg] (0,0) rectangle (0.4,0.22); \tikz[baseline=-1pt]\pic[cyan!40!black,scale=0.8]{wifiicon}; piętro z siecią Wi-Fi\par}
+\caption{Rozmieszczenie stanowisk, urządzeń i punktów dystrybucyjnych w budynkach wydawnictwa}
+\label{fig:rozmieszczenie}
+\end{figure}
+
+Profil działalności wydawnictwa przekłada się bezpośrednio na charakter ruchu
+w sieci. Praca na tekstach i plikach przygotowanych do druku wymaga intensywnej
+wymiany danych z serwerami lokalnymi oraz z drukarkami sieciowymi, w których
+dominuje ruch wysyłany przez użytkowników (zapis dokumentów, zlecenia wydruku).
+Firma utrzymuje także własne serwery dostępne z Internetu: serwer WWW
+(serwis internetowy wydawnictwa) oraz serwer FTP, służący do wymiany plików
+z autorami i klientami. Pracownicy korzystają ponadto z aplikacji
+internetowych: przeglądarki, wideokonferencji, telefonii VoIP, klienta FTP,
+komunikatora, usług pracy w chmurze oraz poczty elektronicznej. Ciągłość pracy
+sieci jest dla firmy istotna, ponieważ jej przerwa zatrzymuje zarówno
+produkcję wydawniczą, jak i obsługę klientów.
+
+\subsection{Cel projektu}
+
+Celem projektu jest zaprojektowanie lokalnej sieci komputerowej wydawnictwa,
+która zapewni prawidłową i niezawodną obsługę wszystkich pracowników, serwerów,
+drukarek oraz urządzeń bezprzewodowych, z uwzględnieniem rzeczywistych
+wymagań na przepustowość zgłoszonych przez zamawiającego.
+
+Projektowana sieć ma spełniać następujące wymagania zamawiającego:
+\begin{itemize}
+  \item wykorzystanie technologii z rodziny Ethernet;
+  \item separacja ruchu poszczególnych grup roboczych za pomocą sieci VLAN;
+  \item dostęp do sieci bezprzewodowej na wskazanym piętrze każdego budynku;
+  \item rezerwa portów na przełącznikach w wysokości 20\,\% portów zajętych,
+  wynikająca z przewidywanego wzrostu zatrudnienia;
+  \item dwa łącza do Internetu (podstawowe i zapasowe) o przepustowości
+  adekwatnej do potrzeb firmy, przy czym łącze podstawowe ma gwarantować
+  co najmniej 40\,\% średniego przewidywanego przepływu;
+  \item zabezpieczenie sieci przed typowymi zagrożeniami, takimi jak awaria
+  zasilania, złośliwe oprogramowanie czy próby włamania z Internetu.
+\end{itemize}
+
+\subsection{Zakres projektu}
+
+Okablowanie strukturalne, szafy teleinformatyczne oraz urządzenia końcowe
+(komputery, serwery, drukarki) są już zainstalowane i nie wchodzą w zakres
+prac. Zakres projektu obejmuje:
+\begin{enumerate}
+  \item inwentaryzację zasobów sprzętowych, aplikacji i zasobów ludzkich,
+  \item analizę potrzeb użytkowników, w tym oszacowanie przepływów danych
+  w kluczowych punktach sieci,
+  \item sformułowanie założeń projektowych,
+  \item projekt logiczny sieci wraz z podziałem na sieci VLAN,
+  \item dobór urządzeń sieciowych,
+  \item projekt adresacji IP oraz konfiguracji urządzeń,
+  \item projekt podłączenia do Internetu wraz z wyborem dostawców,
+  \item analizę bezpieczeństwa i niezawodności sieci,
+  \item kosztorys obejmujący urządzenia oraz koszt łączy internetowych
+  w okresie 2~lat.
+\end{enumerate}
+
+% ================= 2. Inwentaryzacja =================
+\section{Inwentaryzacja zasobów: sprzętu, aplikacji, zasobów ludzkich}
+
+Rozdział przedstawia dane otrzymane od Prowadzącego (zestaw nr~2). Wszystkie
+przepływności podano w kb/s; w dalszych obliczeniach przyjęto
+$1~\text{Mb/s} = 1000~\text{kb/s}$.
+
+\subsection{Zasoby ludzkie}
+
+W firmie pracuje 310 osób przy stanowiskach komputerowych (jeden pracownik
+odpowiada jednemu komputerowi). Pracownicy należą do trzech grup roboczych
+i są rozmieszczeni na pięciu piętrach w dwóch budynkach
+(tabela~\ref{tab:uzytkownicy}).
+
+\begin{table}[htbp]
+\centering
+\caption{Liczba użytkowników (komputerów) w grupach roboczych na piętrach}
+\label{tab:uzytkownicy}
+\begin{tabular}{lcccccr}
+\toprule
+ & \multicolumn{2}{c}{Budynek 1} & \multicolumn{3}{c}{Budynek 2} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+Grupa robocza & P.~1 & P.~2 & P.~1 & P.~2 & P.~3 & Razem \\
+\midrule
+Drukarnia   & 17 & 22 & 5 & 24 & 35 & 103 \\
+Korektorzy  & 43 & 17 & 2 & 18 &  5 &  85 \\
+Konsultanci & 39 & 25 & 1 & 35 & 22 & 122 \\
+\midrule
+Razem       & 99 & 64 & 8 & 77 & 62 & \textbf{310} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Najliczniejszą grupą są Konsultanci (39\,\% stanowisk), a najwięcej
+pracowników jest na 1.~piętrze Budynku~1 (99 stanowisk). Każda grupa jest
+rozproszona po wszystkich pięciu piętrach. Z tego wynika, że separacji ruchu
+grup roboczych nie da się zrealizować podziałem fizycznym (osobne
+przełączniki dla działów), tylko logicznym, za pomocą sieci VLAN obejmujących
+oba budynki.
+
+\subsection{Sprzęt}
+
+\paragraph{Urządzenia końcowe na piętrach.} Oprócz komputerów na piętrach
+znajdują się drukarki sieciowe i punkty dostępowe Wi-Fi, z których korzystają
+urządzenia bezprzewodowe (tabela~\ref{tab:sprzet}). Sieć bezprzewodowa ma
+działać na 1.~piętrze każdego budynku.
+
+\begin{table}[htbp]
+\centering
+\caption{Drukarki, punkty dostępowe i urządzenia bezprzewodowe na piętrach}
+\label{tab:sprzet}
+\begin{tabular}{lcccccr}
+\toprule
+ & \multicolumn{2}{c}{Budynek 1} & \multicolumn{3}{c}{Budynek 2} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-6}
+Urządzenie & P.~1 & P.~2 & P.~1 & P.~2 & P.~3 & Razem \\
+\midrule
+Drukarki                    &  1 & 3 &  2 & 2 & 2 & 10 \\
+Punkty dostępowe Wi-Fi      &  2 & 0 &  1 & 0 & 0 &  3 \\
+Urządzenia bezprzewodowe    & 15 & 0 & 12 & 0 & 0 & 27 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Serwery.} Firma posiada dwa serwery lokalne (Serwer1, Serwer2)
+oraz dwa serwery udostępniane w Internecie (serwer WWW i serwer FTP). Z~danych
+wynika, że z Serwera1 korzystają wszyscy użytkownicy, łącznie z bezprzewodowymi,
+a z Serwera2 wyłącznie Korektorzy. Lokalizacja serwerów nie została podana.
+
+\paragraph{Punkty dystrybucyjne i okablowanie.} W budynkach zainstalowano
+okablowanie strukturalne kat.~6 oraz trzy szafy teleinformatyczne
+(tabela~\ref{tab:pd}). Budynki są oddalone o 204~m i połączone światłowodem
+wielomodowym (kategoria włókna, np.\ OM2/OM3, nie została podana). Wewnątrz
+budynku między MDF a IDF ułożono skrętkę kat.~6, a odległość między
+punktami dystrybucyjnymi nie przekracza 90~m.
+
+\begin{table}[htbp]
+\centering
+\caption{Punkty dystrybucyjne}
+\label{tab:pd}
+\begin{tabular}{lll}
+\toprule
+Oznaczenie & Lokalizacja & Obsługiwane piętra \\
+\midrule
+MDF  & Budynek 2, piętro 3 & Budynek 2: piętro 3 \\
+IDF1 & Budynek 2, piętro 2 & Budynek 2: piętra 1 i 2 \\
+IDF2 & Budynek 1, piętro 2 & Budynek 1: piętra 1 i 2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Aplikacje i usługi}
+
+\paragraph{Ruch do serwerów lokalnych i drukarek.} Tabela~\ref{tab:lokalne}
+podaje przepływności przypadające na jednego użytkownika danej grupy.
+Kierunek \emph{down} oznacza ruch do użytkownika, a \emph{up} ruch od
+użytkownika do serwera lub drukarki. Wiersz WiFi dotyczy urządzeń
+bezprzewodowych.
+
+\begin{table}[htbp]
+\centering
+\caption{Przepływności do serwerów lokalnych i drukarek na użytkownika (down\,/\,up) [kb/s]}
+\label{tab:lokalne}
+\begin{tabular}{lccc}
+\toprule
+Grupa & Serwer1 & Serwer2 & Drukarka \\
+\midrule
+Drukarnia   & 100 / 700 &   0 / 0   & 10 / 190 \\
+Korektorzy  & 200 / 250 & 250 / 750 & 10 / 200 \\
+Konsultanci & 350 / 850 &   0 / 0   & 10 / 120 \\
+WiFi        &  50 / 100 &   0 / 0   & 10 / 120 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+W ruchu do serwerów i drukarek przeważa kierunek \emph{up}, czyli zapis plików
+i wysyłanie zleceń wydruku. Jest to zgodne z profilem wydawnictwa: pracownicy
+zapisują na serwerach przygotowane i poprawione dokumenty.
+
+\paragraph{Aplikacje internetowe.} Tabela~\ref{tab:aplikacje} podaje
+przepływności generowane przez aplikacje użytkowników w kierunku Internetu.
+
+\begin{table}[htbp]
+\centering
+\caption{Przepływności aplikacji internetowych na użytkownika (down\,/\,up) [kb/s]}
+\label{tab:aplikacje}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccccc}
+\toprule
+Grupa & Przegl. & Wideokonf. & VoIP & Klient FTP & Komunik. & Chmura & Poczta \\
+\midrule
+Drukarnia   & 74 / 10 & 40 / 40 & 20 / 20 & 78 / 11 & 15 / 15 & 54 / 28 & 18 / 26 \\
+Korektorzy  & 42 / 10 &  0 / 0  & 20 / 20 & 69 / 20 & 15 / 15 & 47 / 49 &  0 / 0  \\
+Konsultanci & 61 / 10 & 40 / 40 &  0 / 0  &  0 / 0  & 15 / 15 &  0 / 0  & 10 / 29 \\
+WiFi        &  0 / 0  &  0 / 0  &  0 / 0  & 69 / 17 & 15 / 15 & 44 / 46 &  6 / 17 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Wśród aplikacji są usługi czasu rzeczywistego (VoIP, wideokonferencje,
+komunikator), które są wrażliwe na opóźnienia i zmienność opóźnień.
+
+\paragraph{Serwery internetowe.} Tabela~\ref{tab:serwery} podaje prognozowany
+ruch generowany przez serwery firmy obsługujące użytkowników z Internetu.
+
+\begin{table}[htbp]
+\centering
+\caption{Prognozowany ruch serwerów internetowych}
+\label{tab:serwery}
+\begin{tabular}{lccc}
+\toprule
+Serwer & Do Internetu [kb/s/sesję] & Z Internetu [kb/s/sesję] & Jednoczesne sesje \\
+\midrule
+WWW & 130 & 25 & 33 \\
+FTP & 130 & 50 &  3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ================= 3. Analiza potrzeb =================
+\section{Analiza potrzeb użytkowników -- wymagania zamawiającego}
+
+\subsection{Założenia do obliczeń}
+
+\begin{enumerate}
+  \item Podane przepływności uwzględniają przeciążenia i chwilowe wzrosty
+  ruchu (zgodnie z wytycznymi), dlatego nie stosuje się dodatkowych
+  współczynników. Przyjęto, że wszyscy użytkownicy pracują jednocześnie.
+  Suma przepływów jest więc średnim przewidywanym przepływem w danym punkcie
+  sieci. Ponieważ dane od zamawiającego zawierają już zapas na chwilowe wzrosty
+  ruchu, ta sama wartość jest podstawą doboru przepływności łączy.
+  \item Urządzenia bezprzewodowe (27) są użytkownikami dodatkowymi, poza
+  310 komputerami, o profilu ruchu z wiersza WiFi. Łącznie sieć obsługuje
+  $103 + 85 + 122 + 27 = 337$ użytkowników.
+  \item Serwery lokalne (Serwer1, Serwer2) oraz serwery internetowe (WWW, FTP)
+  znajdują się w MDF (Budynek~2, piętro~3), w którym zbiega się okablowanie
+  obu budynków. Serwery lokalne są podłączone do przełącznika rdzeniowego,
+  a serwery WWW i FTP do strefy DMZ zapory sieciowej.
+  \item Użytkownik drukuje na drukarkach swojego piętra, a ruch rozkłada się
+  równo na drukarki piętra.
+  \item Drukarki są wspólne dla wszystkich grup, więc będą w osobnej sieci
+  VLAN, a routing między VLAN-ami odbywa się w MDF. Ruch od użytkownika do
+  drukarki w budynku obsługiwanym przez IDF przechodzi więc łączem
+  szkieletowym dwukrotnie: do MDF i z powrotem. Dlatego w obliczeniach łączy
+  szkieletowych ruch drukarek (down + up) występuje w obu kierunkach. Wynika to
+  bezpośrednio z umieszczenia routingu w MDF. Gdyby drukarki znalazły się
+  w VLAN-ach działów albo routing odbywał się w IDF, ruch do drukarek
+  pozostałby w obrębie budynku.
+\end{enumerate}
+
+Przepływ w danym punkcie sieci obliczono jako
+\begin{equation}
+  T = \sum_{g} n_g \cdot t_g ,
+  \label{eq:suma}
+\end{equation}
+gdzie $n_g$ to liczba użytkowników grupy $g$ korzystających z danego punktu
+sieci, a $t_g$ to przepływność na jednego użytkownika tej grupy.
+
+\subsection{Ruch do serwerów lokalnych}
+
+Łącznie z Serwera1 korzysta 337 użytkowników (103~D, 85~K, 122~S, 27~WiFi).
+\begin{align*}
+T_{\text{S1,up}}   &= 103\cdot700 + 85\cdot250 + 122\cdot850 + 27\cdot100 \\
+                    &= 72\,100 + 21\,250 + 103\,700 + 2\,700 = 199\,750~\text{kb/s},\\
+T_{\text{S1,down}} &= 103\cdot100 + 85\cdot200 + 122\cdot350 + 27\cdot50 \\
+                    &= 10\,300 + 17\,000 + 42\,700 + 1\,350 = 71\,350~\text{kb/s}.
+\end{align*}
+Z Serwera2 korzystają tylko Korektorzy (85 osób):
+\begin{align*}
+T_{\text{S2,up}}   &= 85\cdot750 = 63\,750~\text{kb/s}, &
+T_{\text{S2,down}} &= 85\cdot250 = 21\,250~\text{kb/s}.
+\end{align*}
+Łącze Serwera1 musi więc przyjmować ok.\ 199{,}8~Mb/s i wysyłać 71{,}4~Mb/s,
+a łącze Serwera2 przyjmować 63{,}8~Mb/s i wysyłać 21{,}3~Mb/s.
+
+\subsection{Ruch do drukarek}
+
+Łączny ruch do wszystkich drukarek wynosi
+\begin{align*}
+T_{\text{Dr,up}}   &= 103\cdot190 + 85\cdot200 + 122\cdot120 + 27\cdot120 \\
+                    &= 19\,570 + 17\,000 + 14\,640 + 3\,240 = 54\,450~\text{kb/s},\\
+T_{\text{Dr,down}} &= 337\cdot10 = 3\,370~\text{kb/s}.
+\end{align*}
+Tabela~\ref{tab:drukarki} pokazuje obciążenie łącza pojedynczej drukarki na
+każdym piętrze. Ruch piętra dzieli się przez liczbę drukarek na piętrze
+($T_\text{down}$ to 10~kb/s na każdego użytkownika piętra):
+\begin{align*}
+\text{B1/P1:}~T_\text{up} &= 17\cdot190 + 43\cdot200 + 39\cdot120 + 15\cdot120 = 18\,310,
+  & T_\text{down} &= 114\cdot10 = 1\,140;\\
+\text{B1/P2:}~T_\text{up} &= 22\cdot190 + 17\cdot200 + 25\cdot120 = 10\,580,
+  & T_\text{down} &= 64\cdot10 = 640;\\
+\text{B2/P1:}~T_\text{up} &= 5\cdot190 + 2\cdot200 + 1\cdot120 + 12\cdot120 = 2\,910,
+  & T_\text{down} &= 20\cdot10 = 200;\\
+\text{B2/P2:}~T_\text{up} &= 24\cdot190 + 18\cdot200 + 35\cdot120 = 12\,360,
+  & T_\text{down} &= 77\cdot10 = 770;\\
+\text{B2/P3:}~T_\text{up} &= 35\cdot190 + 5\cdot200 + 22\cdot120 = 10\,290,
+  & T_\text{down} &= 62\cdot10 = 620
+\end{align*}
+(wartości w kb/s). Na przykład na 2.~piętrze Budynku~1 są 3 drukarki, więc na
+jedną przypada $10\,580/3 = 3\,526{,}7$~kb/s up i $640/3 = 213{,}3$~kb/s down.
+
+\begin{table}[htbp]
+\centering
+\caption{Obciążenie łącza jednej drukarki na piętrach}
+\label{tab:drukarki}
+\small
+\begin{tabular}{lccrrr}
+\toprule
+Piętro & Użytk. & Liczba & Up piętra & Up na & Down na \\
+ & D/K/S/WiFi & drukarek & [kb/s] & drukarkę [kb/s] & drukarkę [kb/s] \\
+\midrule
+B1, P.~1 & 17/43/39/15 & 1 & 18\,310 & 18\,310{,}0 & 1\,140{,}0 \\
+B1, P.~2 & 22/17/25/0  & 3 & 10\,580 &  3\,526{,}7 &   213{,}3 \\
+B2, P.~1 & 5/2/1/12    & 2 &  2\,910 &  1\,455{,}0 &   100{,}0 \\
+B2, P.~2 & 24/18/35/0  & 2 & 12\,360 &  6\,180{,}0 &   385{,}0 \\
+B2, P.~3 & 35/5/22/0   & 2 & 10\,290 &  5\,145{,}0 &   310{,}0 \\
+\midrule
+Razem    &             & 10 & 54\,450 & & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Najbardziej obciążona jest jedyna drukarka na 1.~piętrze Budynku~1
+(ok.\ 18{,}3~Mb/s). Łącze 100~Mb/s wystarcza dla każdej drukarki.
+
+Pojedyncze stanowisko generuje najwyżej $t_\text{do MDF} = 1\,324$~kb/s
+(Korektor, tabela~\ref{tab:naosobe}), więc port 1~Gb/s jest obciążony
+w znikomym stopniu.
+
+\subsection{Ruch do Internetu}
+
+\paragraph{Użytkownicy.} Przepływność na jednego użytkownika to suma
+przepływności wszystkich aplikacji z tabeli~\ref{tab:aplikacje}:
+\begin{align*}
+\text{Drukarnia:}   \quad & t_\text{down} = 74+40+20+78+15+54+18 = 299, \\
+                          & t_\text{up} = 10+40+20+11+15+28+26 = 150~\text{kb/s},\\
+\text{Korektorzy:}  \quad & t_\text{down} = 42+0+20+69+15+47+0 = 193, \\
+                          & t_\text{up} = 10+0+20+20+15+49+0 = 114~\text{kb/s},\\
+\text{Konsultanci:} \quad & t_\text{down} = 61+40+0+0+15+0+10 = 126, \\
+                          & t_\text{up} = 10+40+0+0+15+0+29 = 94~\text{kb/s},\\
+\text{WiFi:}        \quad & t_\text{down} = 0+0+0+69+15+44+6 = 134, \\
+                          & t_\text{up} = 0+0+0+17+15+46+17 = 95~\text{kb/s}.
+\end{align*}
+Ruch wszystkich użytkowników:
+\begin{align*}
+T_\text{U,down} &= 103\cdot299 + 85\cdot193 + 122\cdot126 + 27\cdot134 \\
+                 &= 30\,797 + 16\,405 + 15\,372 + 3\,618 = 66\,192~\text{kb/s},\\
+T_\text{U,up}   &= 103\cdot150 + 85\cdot114 + 122\cdot94 + 27\cdot95 \\
+                 &= 15\,450 + 9\,690 + 11\,468 + 2\,565 = 39\,173~\text{kb/s}.
+\end{align*}
+
+\paragraph{Serwery internetowe.} Ruch serwerów to iloczyn przepływności
+na sesję i liczby jednoczesnych sesji:
+\begin{align*}
+T_\text{Srv,do Int.} &= 33\cdot130 + 3\cdot130 = 4\,290 + 390 = 4\,680~\text{kb/s},\\
+T_\text{Srv,z Int.}  &= 33\cdot25 + 3\cdot50 = 825 + 150 = 975~\text{kb/s}.
+\end{align*}
+Łącze serwera WWW obsługuje 4{,}29~Mb/s wysyłanych i 0{,}83~Mb/s
+odbieranych, a łącze serwera FTP 0{,}39~Mb/s i 0{,}15~Mb/s.
+
+\paragraph{Łącze internetowe.} Kierunek do firmy (\emph{download}) tworzą
+dane pobierane przez użytkowników i zapytania do serwerów firmy, a kierunek
+do Internetu (\emph{upload}) dane wysyłane przez użytkowników i odpowiedzi
+serwerów:
+\begin{align*}
+T_\text{Int,down} &= 66\,192 + 975    = 67\,167~\text{kb/s} \approx 67{,}2~\text{Mb/s},\\
+T_\text{Int,up}   &= 39\,173 + 4\,680 = 43\,853~\text{kb/s} \approx 43{,}9~\text{Mb/s}.
+\end{align*}
+Łącze podstawowe ma gwarantować co najmniej 40\,\% średniego przewidywanego
+przepływu:
+\begin{align*}
+G_\text{down} &= 0{,}4\cdot67\,167 = 26\,866{,}8~\text{kb/s} \approx 26{,}9~\text{Mb/s},\\
+G_\text{up}   &= 0{,}4\cdot43\,853 = 17\,541{,}2~\text{kb/s} \approx 17{,}5~\text{Mb/s}.
+\end{align*}
+
+\subsection{Łącza szkieletowe}
+
+Przez łącze IDF--MDF przechodzi cały ruch użytkowników danego IDF do serwerów,
+do Internetu oraz, zgodnie z założeniem~5, do drukarek w obu kierunkach. Na
+jednego użytkownika przypada więc:
+\begin{align*}
+t_\text{do MDF} &= t_\text{S1,up} + t_\text{S2,up} + t_\text{Int,up} + (t_\text{Dr,down} + t_\text{Dr,up}),\\
+t_\text{z MDF}  &= t_\text{S1,down} + t_\text{S2,down} + t_\text{Int,down} + (t_\text{Dr,down} + t_\text{Dr,up}).
+\end{align*}
+
+\begin{table}[htbp]
+\centering
+\caption{Łączny ruch na jednego użytkownika na łączu szkieletowym [kb/s]}
+\label{tab:naosobe}
+\begin{tabular}{lll}
+\toprule
+Grupa & Do MDF & Z MDF \\
+\midrule
+Drukarnia   & $700 + 0 + 150 + 200 = 1050$   & $100 + 0 + 299 + 200 = 599$ \\
+Korektorzy  & $250 + 750 + 114 + 210 = 1324$ & $200 + 250 + 193 + 210 = 853$ \\
+Konsultanci & $850 + 0 + 94 + 130 = 1074$    & $350 + 0 + 126 + 130 = 606$ \\
+WiFi        & $100 + 0 + 95 + 130 = 325$     & $50 + 0 + 134 + 130 = 314$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Łącze IDF2--MDF (między budynkami, światłowód).} IDF2 obsługuje
+cały Budynek~1: $17+22 = 39$~D, $43+17 = 60$~K, $39+25 = 64$~S oraz 15~WiFi.
+\begin{align*}
+T_\text{do MDF} &= 39\cdot1050 + 60\cdot1324 + 64\cdot1074 + 15\cdot325 \\
+                 &= 40\,950 + 79\,440 + 68\,736 + 4\,875 = 194\,001~\text{kb/s},\\
+T_\text{z MDF}  &= 39\cdot599 + 60\cdot853 + 64\cdot606 + 15\cdot314 \\
+                 &= 23\,361 + 51\,180 + 38\,784 + 4\,710 = 118\,035~\text{kb/s}.
+\end{align*}
+
+\paragraph{Łącze IDF1--MDF (Budynek 2, skrętka).} IDF1 obsługuje piętra 1 i 2
+Budynku~2: $5+24 = 29$~D, $2+18 = 20$~K, $1+35 = 36$~S oraz 12~WiFi.
+\begin{align*}
+T_\text{do MDF} &= 29\cdot1050 + 20\cdot1324 + 36\cdot1074 + 12\cdot325 \\
+                 &= 30\,450 + 26\,480 + 38\,664 + 3\,900 = 99\,494~\text{kb/s},\\
+T_\text{z MDF}  &= 29\cdot599 + 20\cdot853 + 36\cdot606 + 12\cdot314 \\
+                 &= 17\,371 + 17\,060 + 21\,816 + 3\,768 = 60\,015~\text{kb/s}.
+\end{align*}
+
+\paragraph{Przełączniki dostępowe w MDF.} Piętro~3 Budynku~2 (35~D, 5~K,
+22~S) łączy się z przełącznikiem rdzeniowym wewnątrz szafy MDF:
+\begin{align*}
+T_\text{do rdzenia} &= 35\cdot1050 + 5\cdot1324 + 22\cdot1074 \\
+                     &= 36\,750 + 6\,620 + 23\,628 = 66\,998~\text{kb/s},\\
+T_\text{z rdzenia}  &= 35\cdot599 + 5\cdot853 + 22\cdot606 \\
+                     &= 20\,965 + 4\,265 + 13\,332 = 38\,562~\text{kb/s}.
+\end{align*}
+
+Kontrola: suma ruchu do rdzenia z trzech punktów dystrybucyjnych,
+$194\,001 + 99\,494 + 66\,998 = 360\,493$~kb/s, jest równa sumie przepływów
+od wszystkich użytkowników:
+\[ 199\,750 + 63\,750 + 39\,173 + (54\,450 + 3\,370) = 360\,493~\text{kb/s}. \]
+
+\subsection{Sieć bezprzewodowa}
+
+Na jedno urządzenie bezprzewodowe przypada
+$t_\text{down} = 50 + 0 + 10 + 134 = 194$~kb/s oraz
+$t_\text{up} = 100 + 0 + 120 + 95 = 315$~kb/s.
+\begin{itemize}
+  \item Budynek~1, piętro~1: 15 urządzeń, 2 punkty dostępowe, czyli 7,5
+  urządzenia na punkt: $7{,}5\cdot194 = 1\,455$~kb/s down
+  i $7{,}5\cdot315 = 2\,362{,}5$~kb/s up.
+  \item Budynek~2, piętro~1: 12 urządzeń, 1 punkt dostępowy:
+  $12\cdot194 = 2\,328$~kb/s down i $12\cdot315 = 3\,780$~kb/s up.
+\end{itemize}
+Wymagana przepływność jest niewielka (poniżej 4~Mb/s na punkt dostępowy).
+O doborze punktów dostępowych decyduje więc zasięg i liczba jednocześnie
+obsługiwanych urządzeń, a nie przepływność.
+
+\subsection{Liczba portów}
+
+Zgodnie z wymaganiem przełączniki mają mieć 20\,\% portów zapasowych
+w stosunku do portów zajętych. Liczbę portów dla urządzeń końcowych
+w każdym punkcie dystrybucyjnym podano w tabeli~\ref{tab:porty} (wynik
+zaokrąglono w górę). Serwery nie są podłączone do przełączników dostępowych,
+dlatego ich porty policzono osobno: Serwer1 i Serwer2 po 2~porty (agregacja
+LACP) na przełączniku rdzeniowym oraz serwery WWW i FTP po 1~porcie w strefie
+DMZ zapory. Daje to $6\cdot1{,}2 = 7{,}2 \to 8$ portów. Porty łączy
+szkieletowych oraz porty do routerów i zapory zostaną policzone na etapie
+doboru urządzeń.
+
+\begin{table}[htbp]
+\centering
+\caption{Liczba portów dostępowych w punktach dystrybucyjnych}
+\label{tab:porty}
+\small
+\begin{tabular}{lcccl}
+\toprule
+Punkt & Komputery & Drukarki & AP & Zajęte $\to$ z rezerwą 20\,\% \\
+\midrule
+IDF2 (B1, P.~1--2) & 163 & 4 & 2  & $169 \cdot 1{,}2 = 202{,}8 \to 203$ \\
+IDF1 (B2, P.~1--2) &  85 & 4 & 1  & $90 \cdot 1{,}2 = 108$ \\
+MDF  (B2, P.~3)    &  62 & 2 & -- & $64 \cdot 1{,}2 = 76{,}8 \to 77$ \\
+\midrule
+Razem              & 310 & 10 & 3 & $323 \to 388$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Łącze do zapory sieciowej i strefa DMZ}
+
+Serwery WWW i FTP są podłączone do strefy DMZ zapory, więc łączem przełącznik
+rdzeniowy--zapora płynie tylko ruch użytkowników do Internetu:
+$T_\text{U,down} = 66{,}2$~Mb/s (do rdzenia) i $T_\text{U,up} = 39{,}2$~Mb/s
+(do zapory). Łączem zapora--DMZ płynie ruch serwerów internetowych:
+4{,}68~Mb/s z DMZ i 0{,}98~Mb/s do DMZ. Przez zaporę przechodzi łącznie cały
+ruch łącza internetowego, czyli 67{,}2/43{,}9~Mb/s.
+
+Przełącznik rdzeniowy obsługuje routing między VLAN-ami. Przechodzi przez
+niego cały ruch od użytkowników, równy sumie z kontroli w punkcie~3.5
+(360{,}5~Mb/s), oraz ruch w przeciwnym kierunku.
+
+\subsection{Rezerwa na wzrost liczby użytkowników}
+
+Zamawiający przewiduje wzrost liczby pracowników o 20\,\%. Zakładając, że nowi
+użytkownicy mają ten sam profil ruchu, przepływy generowane przez użytkowników
+rosną 1,2 raza, a ruch serwerów internetowych pozostaje bez zmian.
+Na przykład dla łącza internetowego:
+\begin{align*}
+T_\text{Int,down} &= 1{,}2\cdot66\,192 + 975 = 79\,430{,}4 + 975 = 80\,405{,}4~\text{kb/s} \approx 80{,}4~\text{Mb/s},\\
+T_\text{Int,up}   &= 1{,}2\cdot39\,173 + 4\,680 = 47\,007{,}6 + 4\,680 = 51\,687{,}6~\text{kb/s} \approx 51{,}7~\text{Mb/s}.
+\end{align*}
+
+\begin{table}[htbp]
+\centering
+\caption{Przepływy po wzroście liczby użytkowników o 20\,\% [Mb/s]}
+\label{tab:wzrost}
+\begin{tabular}{lcc}
+\toprule
+Punkt sieci & Obecnie & Po wzroście o 20\,\% \\
+\midrule
+Łącze IDF2--MDF (do / z MDF)     & 194{,}0 / 118{,}0 & 232{,}8 / 141{,}6 \\
+Łącze IDF1--MDF (do / z MDF)     & 99{,}5 / 60{,}0   & 119{,}4 / 72{,}0 \\
+Serwer1 (do / od serwera)        & 199{,}8 / 71{,}4  & 239{,}7 / 85{,}6 \\
+Łącze do Internetu (down / up)   & 67{,}2 / 43{,}9   & 80{,}4 / 51{,}7 \\
+Gwarancja 40\,\% (down / up)     & 26{,}9 / 17{,}5   & 32{,}2 / 20{,}7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Podsumowanie wymagań na przepływność}
+
+\begin{table}[htbp]
+\centering
+\caption{Wymagana przepływność w kluczowych punktach sieci}
+\label{tab:podsumowanie}
+\begin{tabular}{lrr}
+\toprule
+Punkt sieci & Kierunek 1 [Mb/s] & Kierunek 2 [Mb/s] \\
+\midrule
+Łącze IDF2--MDF (między budynkami) & do MDF: 194{,}0 & z MDF: 118{,}0 \\
+Łącze IDF1--MDF                    & do MDF: 99{,}5  & z MDF: 60{,}0 \\
+Przełączniki piętra 3 -- rdzeń (MDF) & do rdzenia: 67{,}0 & z rdzenia: 38{,}6 \\
+Serwer1                            & do serwera: 199{,}8 & od serwera: 71{,}4 \\
+Serwer2                            & do serwera: 63{,}8  & od serwera: 21{,}3 \\
+Serwer WWW                         & do Internetu: 4{,}29 & z Internetu: 0{,}83 \\
+Serwer FTP                         & do Internetu: 0{,}39 & z Internetu: 0{,}15 \\
+Najbardziej obciążona drukarka     & do drukarki: 18{,}3 & od drukarki: 1{,}1 \\
+Rdzeń -- zapora                    & do zapory: 39{,}2 & do rdzenia: 66{,}2 \\
+Zapora -- DMZ                      & z DMZ: 4{,}68 & do DMZ: 0{,}98 \\
+Łącze do Internetu                 & down: 67{,}2 & up: 43{,}9 \\
+Gwarancja łącza podstawowego (40\,\%) & down: 26{,}9 & up: 17{,}5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Pozostałe wymagania}
+
+\paragraph{Wymagania funkcjonalne.}
+\begin{itemize}
+  \item Ruch każdej grupy roboczej ma być odseparowany (VLAN), przy czym grupy
+  są rozproszone po obu budynkach.
+  \item Dostęp do Serwera2 potrzebują tylko Korektorzy, więc dostęp innych
+  grup do tego serwera można zablokować.
+  \item Sieć Wi-Fi ma działać na 1.~piętrze obu budynków.
+  \item Serwery WWW i FTP muszą być dostępne z Internetu.
+  \item Usługi czasu rzeczywistego (VoIP, wideokonferencje) wymagają
+  małych opóźnień.
+\end{itemize}
+
+\paragraph{Wymagania dotyczące bezpieczeństwa.}
+\begin{itemize}
+  \item Ochrona sieci wewnętrznej przed atakami z Internetu, w szczególności
+  oddzielenie publicznie dostępnych serwerów WWW i FTP od sieci wewnętrznej.
+  \item Kontrola dostępu między grupami roboczymi, serwerami i drukarkami.
+  \item Zabezpieczenie sieci bezprzewodowej przed dostępem osób
+  nieuprawnionych.
+  \item Ochrona przed złośliwym oprogramowaniem i utratą danych na serwerach
+  (pliki wydawnicze są głównym majątkiem firmy).
+  \item Ochrona przed podłączeniem nieautoryzowanych urządzeń do gniazd
+  sieciowych.
+\end{itemize}
+
+\paragraph{Wymagania dotyczące niezawodności.}
+\begin{itemize}
+  \item Dwa łącza do Internetu (podstawowe i zapasowe) z automatycznym
+  przełączaniem.
+  \item Odporność na awarię zasilania urządzeń sieciowych i serwerów.
+  \item Odporność na awarię pojedynczego łącza szkieletowego, zwłaszcza
+  łącza między budynkami, od którego zależy praca 163 stanowisk.
+  \item Możliwość rozbudowy sieci o 20\,\% użytkowników bez wymiany
+  urządzeń.
+  \item Brak pojedynczych punktów awarii w elementach, od których zależy
+  praca całej firmy (przełącznik rdzeniowy, zapora, łącze do Internetu),
+  albo świadoma akceptacja tego ryzyka przez zamawiającego.
+\end{itemize}
+
+% ================= 4. Założenia projektowe =================
+\section{Założenia projektowe}
+
+Na podstawie inwentaryzacji i analizy potrzeb przyjęto następujące założenia
+(do wstępnej akceptacji przez zamawiającego).
+
+\paragraph{Technologia i topologia LAN.}
+\begin{enumerate}
+  \item Technologia Ethernet (IEEE~802.3), topologia gwiazdy hierarchicznej:
+  przełącznik rdzeniowy warstwy~3 w MDF, przełączniki dostępowe w MDF, IDF1
+  i IDF2.
+  \item Stanowiska, drukarki i punkty dostępowe: 1000BASE-T (1~Gb/s) na
+  istniejącym okablowaniu kat.~6. Porty punktów dostępowych są zasilane
+  przez PoE, więc przełączniki obsługujące piętra 1 (IDF1, IDF2) mają porty
+  PoE.
+  \item Przełączniki dostępowe w każdym punkcie dystrybucyjnym łączone
+  w stos. Szacunkowa liczba przełączników 48-portowych: IDF2 -- 5 (240 portów
+  na wymagane 203), IDF1 -- 3 (144 na 108), MDF -- 2 (96 na 77).
+  Łącza w górę prowadzone są przez porty SFP, a łącza zagregowane
+  rozłożone na różne przełączniki stosu.
+\end{enumerate}
+
+\paragraph{Łącza szkieletowe.}
+\begin{enumerate}[resume]
+  \item Łącze IDF2--MDF (światłowód wielomodowy, 204~m między budynkami):
+  wymagane 194~Mb/s, po wzroście o 20\,\% 232,8~Mb/s. Przyjęto dwa łącza
+  1000BASE-SX zagregowane (LACP), co daje 2~Gb/s i obciążenie poniżej
+  12\,\%. Wymaga to dwóch par włókien w kablu międzybudynkowym (do
+  potwierdzenia). Standard 1000BASE-SX działa na każdym typie włókna
+  wielomodowego (OM1 do 275~m, OM2 do 550~m). Rzeczywista długość toru
+  z IDF2 do MDF, z pionami w budynkach, będzie większa niż 204~m, więc przy
+  włóknie OM1 zapas jest niewielki i trzeba zmierzyć tor. Jeśli inwentaryzacja
+  potwierdzi włókno OM3/OM4, można zastosować 10GBASE-SR (do 300/400~m), który
+  na OM1/OM2 nie osiąga tej odległości.
+  \item Łącze IDF1--MDF (skrętka kat.~6, do 90~m): wymagane 99,5~Mb/s.
+  Przyjęto dwa łącza 1000BASE-T zagregowane (LACP).
+  \item Agregacja łączy zapewnia jednocześnie nadmiarowość: awaria jednego
+  portu, wkładki lub pary włókien nie przerywa pracy budynku. Nie chroni
+  natomiast przed przecięciem całego kabla, bo obie pary biegną tą samą trasą.
+\end{enumerate}
+
+\paragraph{Serwery.}
+\begin{enumerate}[resume]
+  \item Serwery lokalne w MDF, podłączone do przełącznika rdzeniowego
+  łączami 2$\times$1~Gb/s (LACP). Najbardziej obciążony Serwer1 wymaga
+  ok.\ 200~Mb/s.
+  \item Serwery WWW i FTP w wydzielonej strefie DMZ, za zaporą sieciową.
+\end{enumerate}
+
+\paragraph{Podział logiczny (VLAN).}
+\begin{enumerate}[resume]
+  \item Osobne sieci VLAN dla: Drukarni, Korektorów, Konsultantów, sieci
+  bezprzewodowej, drukarek, serwerów lokalnych, DMZ oraz zarządzania
+  urządzeniami.
+  \item Routing między VLAN-ami na przełączniku rdzeniowym w MDF, z listami
+  kontroli dostępu (np.\ Serwer2 dostępny tylko dla Korektorów).
+  \item Priorytetyzacja ruchu (QoS, znakowanie DSCP) dla VoIP
+  i wideokonferencji na przełącznikach i zaporze.
+  \item Dynamiczny przydział adresów (DHCP) dla stanowisk i urządzeń
+  bezprzewodowych, adresy statyczne dla serwerów, drukarek i urządzeń
+  sieciowych.
+\end{enumerate}
+
+\paragraph{Łącza do Internetu.}
+\begin{enumerate}[resume]
+  \item Łącze podstawowe: symetryczne, światłowodowe, o przepływności
+  nominalnej co najmniej 100/100~Mb/s (wymagane 67,2/43,9~Mb/s, po wzroście
+  o 20\,\% 80,4/51,7~Mb/s) i przepływności gwarantowanej (SLA) co najmniej
+  40~Mb/s w obu kierunkach (wymagane 26,9/17,5~Mb/s, po wzroście
+  32,2/20,7~Mb/s). Łącze musi być symetryczne, bo ruch w górę (43,9~Mb/s)
+  przekracza wysyłanie typowych łączy asymetrycznych.
+  \item Łącze zapasowe: od innego operatora, inną drogą fizyczną,
+  o przepływności nominalnej co najmniej 100/100~Mb/s, bez gwarancji. Po
+  awarii łącza podstawowego przejmuje cały ruch.
+  \item Pula stałych publicznych adresów IPv4 (co najmniej /29) od operatora
+  łącza podstawowego, dla serwerów WWW i FTP oraz translacji NAT. Od operatora
+  łącza zapasowego co najmniej jeden stały adres publiczny. Po przełączeniu
+  na łącze zapasowe serwery WWW i FTP pozostają dostępne dzięki zmianie
+  rekordów DNS (krótki czas TTL).
+\end{enumerate}
+
+\paragraph{Bezpieczeństwo.}
+\begin{enumerate}[resume]
+  \item Zapora sieciowa nowej generacji (NGFW) na styku z Internetem: NAT,
+  strefa DMZ, filtrowanie ruchu, system IPS, ochrona antywirusowa ruchu.
+  \item Sieć bezprzewodowa w osobnym VLAN-ie, szyfrowanie WPA2/WPA3-Enterprise
+  z uwierzytelnianiem 802.1X przez serwer RADIUS.
+  \item Na przełącznikach: wyłączenie nieużywanych portów, port security,
+  DHCP snooping, ochrona przed pętlami (RSTP, BPDU Guard).
+  \item Oprogramowanie antywirusowe na stanowiskach i serwerach, regularne
+  kopie zapasowe danych Serwera1 i Serwera2.
+\end{enumerate}
+
+\paragraph{Niezawodność i zasilanie.}
+\begin{enumerate}[resume]
+  \item Zasilacze awaryjne UPS w każdej szafie (MDF, IDF1, IDF2) oraz dla
+  serwerów.
+  \item Automatyczne przełączanie na łącze zapasowe przy awarii łącza
+  podstawowego.
+  \item Rezerwa portów i przepływności pozwalająca na wzrost liczby
+  użytkowników o 20\,\% (tabela~\ref{tab:wzrost}).
+  \item Przełącznik rdzeniowy i zapora z redundantnymi zasilaczami.
+  Pojedynczy przełącznik rdzeniowy i pojedyncza zapora pozostają punktami
+  awarii, ocena tego ryzyka i ewentualne zdublowanie tych urządzeń zostaną
+  przedstawione w analizie bezpieczeństwa i niezawodności (punkt~5.6).
+\end{enumerate}
+
+\section{Projekt sieci}
+
+\subsection{Projekt logiczny sieci wraz z opisem koncepcji rozwiązania i uzasadnieniem}
+% Etap 3
+
+\subsection{Wybór urządzeń sieciowych}
+% Etap 3
+
+\subsection{Projekt adresacji IP}
+% Etap 3
+
+\subsection{Projekt konfiguracji urządzeń}
+% Etap 4
+
+\subsection{Projekt podłączenia do Internetu}
+% Etap 4
+
+\subsection{Analiza bezpieczeństwa i niezawodności sieci}
+% Etap 4
+
+\subsection{Kosztorys}
+% Etap 4
+
+\section{Karty katalogowe proponowanych urządzeń}
+% Etap 4
+
+\end{document}

@@ -1,0 +1,51 @@
+
+Przedsiêbiorstwo/instytucja:;;Wydawnictwo
+
+;Liczba u¿ytkowników (komputerów)
+;Budynek 1;;Budynek 2
+Grupa robocza;Piêtro 1;Piêtro 2;Piêtro 1;Piêtro 2;Piêtro 3;
+Drukarnia;17;22;5;24;35;
+Korektorzy;43;17;2;18;5;
+Konsultanci;39;25;1;35;22;
+;Liczba drukarek
+;1;3;2;2;2;
+;Liczba punktów dostêpowych WiFi
+;2;0;1;0;0;
+;Liczba urz¹dzeñ bezprzewodowych
+;15;0;12;0;0;
+
+Odleg³oœc pomiêdzy budynkami:;;;204m (w³aœciwie nie jest to potrzebne w projekcie)
+£¹cze pomiêdzy budynkami:;;;Optyczne wielomodowe
+
+Punkty dystrybucyjne: 
+Oznaczenie;Lokalizacja;Pod³¹czone punkty abonenckie
+MDF;Bud. 2, Piêtro 3;Bud. 2, Piêtro 3,;
+IDF1;Bud. 2, Piêtro 2;Bud. 2, Piêtro 2,1,;
+IDF2;Bud. 1, Piêtro 2;Bud. 1;
+
+
+Wymagania dot. przep³ywów pomiêdzy pracownikami a serwerami lokalnymi (transfer przypadaj¹cy na jednego u¿ytkownika) - dotyczy równie¿ u¿ytkowników WiFi
+
+;Transfer do serwerów lokalnych i drukarek (down \ up) [kb/s]
+Grupa rob. / Serwer;Serwer1;Serwer2;Drukarka
+Drukarnia;100\700;0\0;10\190;
+Korektorzy;200\250;250\750;10\200;
+Konsultanci;350\850;0\0;10\120;
+WiFi;50\100;0\0;10\120;
+
+Prognozowany ruch do Internetu z posiadanych przez firmê serwerów internetowych
+
+;Transfer do\z Internetu na jedn¹ sesjê (internautê) [kb/s] 
+Serwery internetowe;Do Internetu;Z Internetu;Liczba jednoczesnych sesji
+Serwer WWW;130;25;33
+Serwer FTP;130;50;3
+
+
+Wymagania dot. przep³ywów generowanych przez aplikacje u¿ytkownika z\do internetu  (transfer przypadaj¹cy na jednego u¿ytkownika)  - dotyczy równie¿ u¿ytkowników WiFi
+
+;Transfer z/do Internetu (down \ up) [kb/s]
+Grupa rob./Aplikacja;Przegl¹darka;Wideokonferencja;VoIP;Klient_FTP;Komunikator;Praca_w_chmurze;Poczta;
+Drukarnia;74\10;40\40;20\20;78\11;15\15;54\28;18\26;
+Korektorzy;42\10;0\0;20\20;69\20;15\15;47\49;0\0;
+Konsultanci;61\10;40\40;0\0;0\0;15\15;0\0;10\29;
+WiFi;0\0;0\0;0\0;69\17;15\15;44\46;6\17;

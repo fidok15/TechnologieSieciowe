@@ -1,0 +1,255 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{iftex}
+\ifTUTeX % tectonic / xelatex / lualatex
+  \usepackage{fontspec}
+\else % pdflatex
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{indentfirst}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,backgrounds}
+\tikzset{
+  wifiicon/.pic={\fill (0,0) circle (0.05);
+    \foreach \r in {0.14,0.25,0.36} \draw[line width=1.1pt] (50:\r) arc (50:130:\r);}}
+\colorlet{wifibg}{cyan!25}
+\usepackage[hidelinks]{hyperref}
+
+
+% Dane grupy - uzupełnić
+\newcommand{\autorA}{Adam Korwin 284455}
+\newcommand{\autorB}{Michał Hałas 277462}
+
+\begin{document}
+
+% ---------------- Strona tytułowa ----------------
+\pagenumbering{Alph}
+\begin{titlepage}
+  \centering
+  \includegraphics[height=3.5cm]{pwr_logo.png}\par\vspace{0.6cm}
+  {\Large\textsc{Politechnika Wrocławska}\par}
+  \vspace{0.2cm}
+  {\large Wydział Informatyki i Telekomunikacji\par}
+  \vspace{2.5cm}
+  {\large Projekt z przedmiotu\par}
+  \vspace{0.3cm}
+  {\LARGE\bfseries Technologie Sieciowe\par}
+  \vspace{1.2cm}
+  {\Large Projekt lokalnej sieci komputerowej\\ dla wydawnictwa\par}
+  \vspace{0.6cm}
+  \vspace{2.5cm}
+  \begin{flushleft}
+    \textbf{Skład grupy:}
+    \begin{enumerate}[leftmargin=2em]
+      \item \autorA
+      \item \autorB
+    \end{enumerate}
+  \end{flushleft}
+  \vfill
+  {\large Wrocław, \today\par}
+\end{titlepage}
+\pagenumbering{arabic}
+
+\tableofcontents
+\newpage
+
+% ---------------- 1. Wstęp ----------------
+\section{Wstęp}
+
+\subsection{Charakterystyka przedsiębiorstwa}
+
+Przedmiotem projektu jest sieć komputerowa wydawnictwa z siedzibą we Wrocławiu.
+Wydawnictwo prowadzi pełny cykl wydawniczy: od przyjęcia materiałów od autorów
+i klientów, przez opracowanie redakcyjne i korektę tekstów, aż po przygotowanie
+do druku i druk. Firma zatrudnia 310 pracowników pracujących przy stanowiskach
+komputerowych, zorganizowanych w trzy grupy robocze (działy):
+
+\begin{itemize}
+  \item \textbf{Drukarnia} (103 stanowiska) -- dział odpowiedzialny za
+  przygotowanie publikacji do druku (skład, przygotowanie plików produkcyjnych)
+  oraz realizację zleceń drukarskich;
+  \item \textbf{Korektorzy} (85 stanowisk) -- dział zajmujący się redakcją
+  i korektą tekstów przed ich skierowaniem do druku;
+  \item \textbf{Konsultanci} (122 stanowiska) -- dział obsługi autorów
+  i klientów: przyjmowanie zamówień, konsultacje oraz kontakt z kontrahentami.
+\end{itemize}
+
+Przedsiębiorstwo zajmuje dwa budynki: w Budynku~1 piętra 1--2, a w
+Budynku~2 piętra 1--3. Pracownicy wszystkich działów są rozmieszczeni
+w obu budynkach. Budynki są oddalone od siebie o 204~m i połączone
+światłowodem wielomodowym.
+W budynkach zainstalowano okablowanie strukturalne kategorii~6 oraz szafy
+teleinformatyczne: główny punkt dystrybucyjny (MDF) na 3.~piętrze Budynku~2
+oraz dwa pośrednie punkty dystrybucyjne (IDF1 na 2.~piętrze Budynku~2,
+IDF2 na 2.~piętrze Budynku~1). Na 1.~piętrze każdego z budynków pracownicy
+korzystają również z urządzeń bezprzewodowych. Rozmieszczenie stanowisk,
+urządzeń i punktów dystrybucyjnych przedstawiono na rysunku~\ref{fig:rozmieszczenie}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[font=\scriptsize,
+  floor/.style={draw, anchor=south west, minimum width=6.9cm, minimum height=2cm,
+    text width=6.6cm, align=left, inner sep=4pt},
+  wifi/.style={fill=wifibg},
+  rack/.style={draw, fill=black!75, text=white, font=\scriptsize\bfseries,
+    minimum width=1.1cm, minimum height=0.5cm, inner sep=1pt},
+  fiber/.style={very thick, orange!80!black},
+  copper/.style={very thick, green!50!black},
+  serves/.style={densely dotted, thick, ->, >=stealth}]
+
+  % Budynek 1 (2 piętra), punkt dystrybucyjny w prawym górnym rogu
+  \node[floor, wifi] (b1p1) at (0,0)
+    {\textbf{Piętro 1} -- 99 stanowisk\\
+     Drukarnia: 17, Korektorzy: 43, Konsultanci: 39\\
+     Drukarki: 1, AP Wi-Fi: 2, urz. bezprz.: 15};
+  \node[floor] (b1p2) at (0,2)
+    {\textbf{Piętro 2} -- 64 stanowiska\\
+     Drukarnia: 22, Korektorzy: 17, Konsultanci: 25\\
+     Drukarki: 3};
+  \begin{scope}[on background layer]
+    \node[draw, very thick, rounded corners, fill=black!4, inner sep=5pt, fit=(b1p1)(b1p2)] (bud1) {};
+  \end{scope}
+  \node[font=\small\bfseries, below=2pt of bud1] {Budynek 1};
+
+  % Budynek 2 (3 piętra), punkty dystrybucyjne w prawym górnym rogu
+  \node[floor, wifi] (b2p1) at (8.6,0)
+    {\textbf{Piętro 1} -- 8 stanowisk\\
+     Drukarnia: 5, Korektorzy: 2, Konsultanci: 1\\
+     Drukarki: 2, AP Wi-Fi: 1, urz. bezprz.: 12};
+  \node[floor] (b2p2) at (8.6,2)
+    {\textbf{Piętro 2} -- 77 stanowisk\\
+     Drukarnia: 24, Korektorzy: 18, Konsultanci: 35\\
+     Drukarki: 2};
+  \node[floor] (b2p3) at (8.6,4)
+    {\textbf{Piętro 3} -- 62 stanowiska\\
+     Drukarnia: 35, Korektorzy: 5, Konsultanci: 22\\
+     Drukarki: 2};
+  \begin{scope}[on background layer]
+    \node[draw, very thick, rounded corners, fill=black!4, inner sep=5pt, fit=(b2p1)(b2p3)] (bud2) {};
+  \end{scope}
+  \node[font=\small\bfseries, below=2pt of bud2] {Budynek 2};
+
+  % Odległość między budynkami
+  \draw[<->, >=stealth, thick] (bud1.east |- 0,1) -- (bud2.west |- 0,1)
+    node[midway, above, font=\scriptsize\bfseries] {204 m};
+
+  % Wi-Fi
+  \pic[cyan!40!black] at ([shift={(-0.45,0.3)}]b1p1.south east) {wifiicon};
+  \pic[cyan!40!black] at ([shift={(-0.45,0.3)}]b2p1.south east) {wifiicon};
+
+  \node[rack, anchor=north east] (idf2) at ([shift={(-0.12,-0.12)}]b1p2.north east) {IDF2};
+  \node[rack, anchor=north east] (idf1) at ([shift={(-0.12,-0.12)}]b2p2.north east) {IDF1};
+  \node[rack, anchor=north east] (mdf)  at ([shift={(-0.12,-0.12)}]b2p3.north east) {MDF};
+
+  \draw[fiber] (idf2.east) -- ++(0.9,0) |- ([yshift=0.35cm]b2p3.north -| mdf) -- (mdf.north);
+  \draw[copper] (idf1.north) -- (mdf.south);
+  \draw[serves] ([xshift=0.35cm]idf2.south) -- ([xshift=-0.32cm]b1p1.north east);
+  \draw[serves] ([xshift=0.35cm]idf1.south) -- ([xshift=-0.32cm]b2p1.north east);
+\end{tikzpicture}
+
+\vspace{6pt}
+{\scriptsize
+\tikz\draw[very thick, orange!80!black] (0,0) -- (0.6,0); światłowód wielomodowy\quad
+\tikz\draw[very thick, green!50!black] (0,0) -- (0.6,0); skrętka kat.~6\quad
+\tikz\draw[densely dotted, thick, ->, >=stealth] (0,0) -- (0.6,0); piętro obsługiwane przez IDF\quad
+\tikz\draw[fill=wifibg] (0,0) rectangle (0.4,0.22); \tikz[baseline=-1pt]\pic[cyan!40!black,scale=0.8]{wifiicon}; piętro z siecią Wi-Fi\par}
+\caption{Rozmieszczenie stanowisk, urządzeń i punktów dystrybucyjnych w budynkach wydawnictwa}
+\label{fig:rozmieszczenie}
+\end{figure}
+
+Profil działalności wydawnictwa przekłada się bezpośrednio na charakter ruchu
+w sieci. Praca na tekstach i plikach przygotowanych do druku wymaga intensywnej
+wymiany danych z serwerami lokalnymi oraz z drukarkami sieciowymi, w których
+dominuje ruch wysyłany przez użytkowników (zapis dokumentów, zlecenia wydruku).
+Firma utrzymuje także własne serwery dostępne z Internetu: serwer WWW
+(serwis internetowy wydawnictwa) oraz serwer FTP, służący do wymiany plików
+z autorami i klientami. Pracownicy korzystają ponadto z aplikacji
+internetowych: przeglądarki, wideokonferencji, telefonii VoIP, klienta FTP,
+komunikatora, usług pracy w chmurze oraz poczty elektronicznej. Ciągłość pracy
+sieci jest dla firmy istotna, ponieważ jej przerwa zatrzymuje zarówno
+produkcję wydawniczą, jak i obsługę klientów.
+
+\subsection{Cel projektu}
+
+Celem projektu jest zaprojektowanie lokalnej sieci komputerowej wydawnictwa,
+która zapewni prawidłową i niezawodną obsługę wszystkich pracowników, serwerów,
+drukarek oraz urządzeń bezprzewodowych, z uwzględnieniem rzeczywistych
+wymagań na przepustowość zgłoszonych przez zamawiającego.
+
+Projektowana sieć ma spełniać następujące wymagania zamawiającego:
+\begin{itemize}
+  \item wykorzystanie technologii z rodziny Ethernet;
+  \item separacja ruchu poszczególnych grup roboczych za pomocą sieci VLAN;
+  \item dostęp do sieci bezprzewodowej na wskazanym piętrze każdego budynku;
+  \item rezerwa portów na przełącznikach w wysokości 20\,\% portów zajętych,
+  wynikająca z przewidywanego wzrostu zatrudnienia;
+  \item dwa łącza do Internetu (podstawowe i zapasowe) o przepustowości
+  adekwatnej do potrzeb firmy, przy czym łącze podstawowe ma gwarantować
+  co najmniej 40\,\% średniego przewidywanego przepływu;
+  \item zabezpieczenie sieci przed typowymi zagrożeniami, takimi jak awaria
+  zasilania, złośliwe oprogramowanie czy próby włamania z Internetu.
+\end{itemize}
+
+\subsection{Zakres projektu}
+
+Okablowanie strukturalne, szafy teleinformatyczne oraz urządzenia końcowe
+(komputery, serwery, drukarki) są już zainstalowane i nie wchodzą w zakres
+prac. Zakres projektu obejmuje:
+\begin{enumerate}
+  \item inwentaryzację zasobów sprzętowych, aplikacji i zasobów ludzkich,
+  \item analizę potrzeb użytkowników, w tym oszacowanie przepływów danych
+  w kluczowych punktach sieci,
+  \item sformułowanie założeń projektowych,
+  \item projekt logiczny sieci wraz z podziałem na sieci VLAN,
+  \item dobór urządzeń sieciowych,
+  \item projekt adresacji IP oraz konfiguracji urządzeń,
+  \item projekt podłączenia do Internetu wraz z wyborem dostawców,
+  \item analizę bezpieczeństwa i niezawodności sieci,
+  \item kosztorys obejmujący urządzenia oraz koszt łączy internetowych
+  w okresie 2~lat.
+\end{enumerate}
+
+% ---------------- Kolejne etapy ----------------
+\section{Inwentaryzacja zasobów: sprzętu, aplikacji, zasobów ludzkich}
+% Etap 2
+
+\section{Analiza potrzeb użytkowników -- wymagania zamawiającego}
+% Etap 2
+
+\section{Założenia projektowe}
+% Etap 2
+
+\section{Projekt sieci}
+
+\subsection{Projekt logiczny sieci wraz z opisem koncepcji rozwiązania i uzasadnieniem}
+% Etap 3
+
+\subsection{Wybór urządzeń sieciowych}
+% Etap 3
+
+\subsection{Projekt adresacji IP}
+% Etap 3
+
+\subsection{Projekt konfiguracji urządzeń}
+% Etap 4
+
+\subsection{Projekt podłączenia do Internetu}
+% Etap 4
+
+\subsection{Analiza bezpieczeństwa i niezawodności sieci}
+% Etap 4
+
+\subsection{Kosztorys}
+% Etap 4
+
+\section{Karty katalogowe proponowanych urządzeń}
+% Etap 4
+
+\end{document}
