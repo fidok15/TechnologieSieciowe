@@ -12,6 +12,7 @@
 \usepackage[a4paper,margin=2.5cm]{geometry}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{float}
 \usepackage{amsmath}
 \setlength{\emergencystretch}{2em}
 \usepackage{enumitem}
@@ -681,7 +682,12 @@ Gwarancja 40\,\% (down / up)     & 26{,}9 / 17{,}5   & 32{,}2 / 20{,}7 \\
 
 \subsection{Podsumowanie wymagań na przepływność}
 
-\begin{table}[htbp]
+Tabela~\ref{tab:podsumowanie} zestawia wymagane przepływności w kluczowych
+punktach sieci, obliczone w punktach 3.2--3.8 dla obecnej liczby
+użytkowników. Wartości po wzroście liczby użytkowników o 20\,\% podano
+w tabeli~\ref{tab:wzrost}.
+
+\begin{table}[H]
 \centering
 \caption{Wymagana przepływność w kluczowych punktach sieci}
 \label{tab:podsumowanie}
@@ -764,8 +770,11 @@ Na podstawie inwentaryzacji i analizy potrzeb przyjęto następujące założeni
   \item Przełączniki dostępowe w każdym punkcie dystrybucyjnym łączone
   w stos. Szacunkowa liczba przełączników 48-portowych: IDF2 -- 5 (240 portów
   na wymagane 203), IDF1 -- 3 (144 na 108), MDF -- 2 (96 na 77).
-  Łącza w górę prowadzone są przez porty SFP, a łącza zagregowane
-  rozłożone na różne przełączniki stosu.
+  W IDF1 piętro~2 wymaga $79 \cdot 1{,}2 = 94{,}8 \rightarrow 95$ portów,
+  więc dwa przełączniki tego piętra (96 portów) są wykorzystane niemal
+  w całości. Dlatego łącza w górę i połączenia stosu nie mogą zajmować portów
+  dostępowych: prowadzone są przez dodatkowe porty SFP i dedykowane porty
+  stosu, a łącza zagregowane rozłożone na różne przełączniki stosu.
 \end{enumerate}
 
 \paragraph{Łącza szkieletowe.}
@@ -781,7 +790,8 @@ Na podstawie inwentaryzacji i analizy potrzeb przyjęto następujące założeni
   potwierdzi włókno OM3/OM4, można zastosować 10GBASE-SR (do 300/400~m), który
   na OM1/OM2 nie osiąga tej odległości.
   \item Łącze IDF1--MDF (skrętka kat.~6, do 90~m): wymagane 99,5~Mb/s.
-  Przyjęto dwa łącza 1000BASE-T zagregowane (LACP).
+  Przyjęto dwa łącza 1000BASE-T zagregowane (LACP), zestawione przez porty
+  SFP z wkładkami 1000BASE-T (RJ45), zgodnie z punktem~3.
   \item Agregacja łączy zapewnia jednocześnie nadmiarowość: awaria jednego
   portu, wkładki lub pary włókien nie przerywa pracy budynku. Nie chroni
   natomiast przed przecięciem całego kabla, bo obie pary biegną tą samą trasą.
@@ -806,7 +816,9 @@ Na podstawie inwentaryzacji i analizy potrzeb przyjęto następujące założeni
   i wideokonferencji na przełącznikach i zaporze.
   \item Dynamiczny przydział adresów (DHCP) dla stanowisk i urządzeń
   bezprzewodowych, adresy statyczne dla serwerów, drukarek i urządzeń
-  sieciowych.
+  sieciowych. Serwer DHCP działa na przełączniku rdzeniowym, który jest
+  bramą domyślną wszystkich VLAN-ów, z osobną pulą adresów dla każdego
+  VLAN-u.
 \end{enumerate}
 
 \paragraph{Łącza do Internetu.}
@@ -832,7 +844,10 @@ Na podstawie inwentaryzacji i analizy potrzeb przyjęto następujące założeni
   \item Zapora sieciowa nowej generacji (NGFW) na styku z Internetem: NAT,
   strefa DMZ, filtrowanie ruchu, system IPS, ochrona antywirusowa ruchu.
   \item Sieć bezprzewodowa w osobnym VLAN-ie, szyfrowanie WPA2/WPA3-Enterprise
-  z uwierzytelnianiem 802.1X przez serwer RADIUS.
+  z uwierzytelnianiem 802.1X przez serwer RADIUS. Inwentaryzacja nie
+  obejmuje serwera RADIUS, więc przyjęto uruchomienie tej usługi na Serwerze1
+  (np.\ FreeRADIUS lub NPS) w VLAN-ie serwerów lokalnych (do potwierdzenia
+  przez zamawiającego).
   \item Na przełącznikach: wyłączenie nieużywanych portów, port security,
   DHCP snooping, ochrona przed pętlami (RSTP, BPDU Guard).
   \item Oprogramowanie antywirusowe na stanowiskach i serwerach, regularne
